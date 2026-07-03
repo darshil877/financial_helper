@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebCraft Finance — Dual-Mode Financial Suite</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            slate: {
+              950: '#030712',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <link rel="stylesheet" href="css/index.css?v=3">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="h-full bg-slate-950 text-slate-100 flex flex-col relative overflow-hidden select-none">
+
+  <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full aurora-glow-1 pointer-events-none z-0"></div>
+  <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full aurora-glow-2 pointer-events-none z-0"></div>
+  <div class="absolute top-[30%] left-[40%] w-[40%] h-[40%] rounded-full aurora-glow-3 pointer-events-none z-0"></div>
+
+  <header
+    class="app-header glass-panel z-10 px-4 sm:px-6 py-4 flex items-center justify-between border-b border-white/5">
+    <div class="flex items-center gap-3">
+      <button id="btn-open-nav"
+        class="mobile-only-control h-9 w-9 rounded-xl bg-white/0 border border-white/10 items-center justify-center text-slate-200">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div
+        class="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+        <i class="fa-solid fa-chart-line text-white text-lg"></i>
+      </div>
+      <div>
+        <h1
+          class="text-lg sm:text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-indigo-300 bg-clip-text text-transparent">
+          WebCraft Finance
+        </h1>
+        <p class="header-subtitle text-[10px] text-slate-400 font-medium tracking-wider uppercase">Standalone Financial
+          Terminal</p>
+      </div>
+    </div>
+
+    <div class="header-actions flex items-center gap-3 sm:gap-6">
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-semibold text-indigo-300 tracking-wide uppercase"
+          id="persona-label-beginner">Beginner</span>
+        <div id="persona-toggle-switch" class="toggle-switch flex items-center justify-between relative px-2.5">
+          <div class="toggle-switch-slider"></div>
+          <span class="text-[11px] font-bold z-10 w-1/2 text-center text-white select-none">Guided</span>
+          <span class="text-[11px] font-bold z-10 w-1/2 text-center text-slate-400 select-none">Terminal</span>
+        </div>
+        <span class="text-xs font-semibold text-purple-300 tracking-wide uppercase"
+          id="persona-label-pro">Professional</span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Unit:</span>
+        <select id="currency-select"
+          class="p-1.5 px-3 rounded-full text-xs font-semibold bg-slate-900/60 backdrop-blur-0 border border-white/10 text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition cursor-pointer">
+          <option value="INR">₹ INR</option>
+          <option value="USD">$ USD</option>
+          <option value="EUR">€ EUR</option>
+          <option value="GBP">£ GBP</option>
+          <option value="AED">د.إ AED</option>
+          <option value="SGD">S$ SGD</option>
+        </select>
+      </div>
+
+      <button id="btn-reset-data"
+        class="px-4 py-1.5 rounded-full text-xs font-medium bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 transition duration-200 flex items-center gap-1.5 active:scale-95">
+        <i class="fa-solid fa-rotate-left"></i> Reset My Data
+      </button>
+
+      <div id="auth-header-container" class="flex items-center gap-3">
+        <div class="h-4 w-4 rounded-full border border-white/20 border-t-indigo-400 animate-spin"></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex-1 flex overflow-hidden z-10 relative">
+
+    <aside id="nav-sidebar"
+      class="w-64 border-r border-white/5 bg-slate-950/40 backdrop-blur-md p-4 flex flex-col justify-between overflow-y-auto">
+      <div class="space-y-6">
+        <div class="flex justify-end mb-1">
+          <button id="btn-close-nav"
+            class="mobile-only-control h-8 w-8 rounded-lg bg-white/5 border border-white/10 items-center justify-center text-slate-300">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div>
+          <a href="#" data-calculator-id="dashboard"
+            class="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-200 transition duration-150">
+            <i class="fa-solid fa-house"></i>
+            <span>Workspace Dashboard</span>
+          </a>
+        </div>
+
+        <div>
+          <h3 class="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-arrow-trend-up text-indigo-400"></i> Growth Hub
+          </h3>
+          <ul class="space-y-1">
+            <li>
+              <a href="#"
+                class="flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">
+                <span>Step-Up SIP</span>
+              </a>
+            </li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Standard
+                SIP</a></li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Stock
+                SIP</a></li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Bond
+                SIP</a></li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Flexi-SIP</a>
+            </li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Trigger
+                SIP</a></li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Perpetual
+                SIP</a></li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Multi-SIP</a>
+            </li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">SIP
+                with Insurance</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-wallet text-emerald-400"></i> Income Hub
+          </h3>
+          <ul class="space-y-1">
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Standard
+                SWP</a></li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Fixed
+                SWP</a></li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Appreciation
+                SWP</a></li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Custom
+                SWP</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-shield-halved text-rose-400"></i> Survival Hub
+          </h3>
+          <ul class="space-y-1">
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Emergency
+                Fund</a></li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Term
+                Insurance</a></li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Health
+                Cover</a></li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Financial
+                Health Score</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="px-3 text-[10px] font-bold tracking-wider text-slate-400 uppercase mb-2 flex items-center gap-2">
+            <i class="fa-solid fa-percent text-amber-400"></i> Tax & Alpha
+          </h3>
+          <ul class="space-y-1">
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Capital
+                Gains Tax</a></li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">Portfolio
+                Rebalancing</a></li>
+            <li><a href="#"
+                class="flex items-center px-3 py-2 text-xs font-medium rounded-lg text-slate-400 hover:text-slate-200 hover:bg-white/5 transition duration-150">What-If
+                Stress Tester</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-8 border-t border-white/5 pt-4 text-[10px] text-slate-500">
+        <div class="flex items-center gap-1.5 mb-1">
+          <div id="storage-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+          <span id="storage-status-text">Storage: Local Active</span>
+        </div>
+        <div>v1.0.0 Stable client build</div>
+      </div>
+    </aside>
+
+    <main id="main-canvas" class="flex-1 p-8 overflow-y-auto flex flex-col justify-start relative">
+
+      <div id="active-onboarding-view" class="hidden"></div>
+
+      <div id="active-dashboard-view" class="hidden"></div>
+
+      <div id="active-canvas-view" class="hidden flex-1 flex flex-col justify-start">
+        <div class="mb-6 flex justify-between items-start">
+          <div>
+            <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Active Tool</span>
+            <h2 class="text-2xl font-black mt-1 text-slate-100" id="calc-title">Step-Up SIP Calculator</h2>
+            <p class="text-xs text-slate-400 mt-1" id="calc-desc">Calculate future values with annual step-ups.</p>
+          </div>
+          <button onclick="window.CalculatorsController.saveActiveAsGoal()"
+            class="px-5 py-2 rounded-xl text-xs font-semibold bg-indigo-500 hover:bg-indigo-600 border border-indigo-400/20 text-white flex items-center gap-1.5 active:scale-95 transition">
+            <i class="fa-solid fa-bookmark"></i> Save Goal
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+          <div class="lg:col-span-5 glass-panel rounded-2xl p-6 border border-white/5 space-y-6"
+            id="calculator-inputs-panel">
+            </div>
+
+          <div class="lg:col-span-7 space-y-6">
+            <div class="glass-panel rounded-2xl p-6 border border-white/5" id="calculator-results">
+              </div>
+
+            <div class="glass-panel rounded-2xl p-6 border border-white/5 flex flex-col justify-between">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Financial Growth Projection</h4>
+                <span class="text-[10px] text-slate-500 font-semibold uppercase">Dynamic Chart.js</span>
+              </div>
+              <div class="h-[280px] w-full relative">
+                <canvas id="calculator-chart"></canvas>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+    <aside id="coach-sidebar"
+      class="w-80 border-l border-white/5 bg-slate-950/100 p-6 flex flex-col justify-between overflow-hidden">
+      <div class="border-b border-white/5 pb-4">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <div
+                class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-md">
+                <i class="fa-solid fa-robot text-white text-base"></i>
+              </div>
+              <span
+                class="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-500 border-2 border-slate-950"></span>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-100">Financial Friend</h3>
+              <p class="text-[10px] text-emerald-400 font-medium">Watching active canvas...</p>
+            </div>
+          </div>
+          <button id="btn-close-coach"
+            class="mobile-only-control h-8 w-8 rounded-lg bg-white/5 border border-white/10 items-center justify-center text-slate-300 shrink-0">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="coach-message-feed" class="flex-1 my-4 overflow-y-auto space-y-4 pr-1">
+        <div class="flex gap-2 items-start">
+          <div
+            class="h-6 w-6 rounded-full bg-indigo-500/20 flex items-center justify-center text-xs shrink-0 text-indigo-300">
+            <i class="fa-solid fa-robot"></i>
+          </div>
+          <div
+            class="p-3 rounded-2xl rounded-tl-none bg-white/5 border border-white/5 text-xs text-slate-300 leading-relaxed">
+            Hey! I'm your simulated AI Coach. Ask me questions like "how to handle volatility?" or "retirement income"
+            and I'll route you!
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-white/5 pt-4">
+        <div class="relative">
+          <input type="text" id="coach-chat-input" placeholder="Ask coach (e.g. 'volatility', 'retire')..."
+            class="w-full text-xs p-3 rounded-xl bg-white/5 border border-white/5 text-slate-200 pr-10 focus:outline-none focus:border-indigo-500/50">
+          <button id="btn-coach-chat-send"
+            class="absolute right-2.5 top-2.5 text-indigo-400 hover:text-indigo-300 transition">
+            <i class="fa-solid fa-paper-plane text-xs"></i>
+          </button>
+        </div>
+        <p class="text-[9px] text-slate-500 mt-2 text-center">Real-time AI Routing Copilot Active</p>
+      </div>
+    </aside>
+
+    <div id="drawer-backdrop" class="drawer-backdrop"></div>
+
+  </div> <button id="btn-open-coach" aria-label="Open Financial Friend chat">
+    <i class="fa-solid fa-robot"></i>
+  </button>
+
+  <script src="js/state.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/mathEngine.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/faqData.js"></script>
+  <script src="js/faqEngine.js"></script>
+  <script src="js/aiCoach.js"></script>
+  <script src="js/calculators.js"></script>
+
+  <script>
+      // MOBILE: lock background scrolling while a drawer is open (prevents weird blur/interaction artifacts)
+      (function () {
+        const navSidebar = null; // placeholder; real refs are set below in DOMContentLoaded
+        function isMobile() { return window.innerWidth < 1024; }
+        function setBodyScrollLocked(locked) {
+          document.body.style.overflow = locked ? 'hidden' : '';
+        }
+        window.__drawerFocus_setBodyScrollLocked = setBodyScrollLocked;
+      })();
+
+    // Bind global header persona toggle states
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.getElementById('persona-toggle-switch');
+      const labelBeginner = document.getElementById('persona-label-beginner');
+      const labelPro = document.getElementById('persona-label-pro');
+
+      function updateToggleClasses(state) {
+        if (state.persona === 'professional') {
+          toggleBtn.classList.add('professional');
+          labelPro.classList.add('text-purple-400');
+          labelPro.classList.remove('text-slate-400');
+          labelBeginner.classList.add('text-slate-400');
+          labelBeginner.classList.remove('text-indigo-400');
+        } else {
+          toggleBtn.classList.remove('professional');
+          labelBeginner.classList.add('text-indigo-400');
+          labelBeginner.classList.remove('text-slate-400');
+          labelPro.classList.add('text-slate-400');
+          labelPro.classList.remove('text-purple-400');
+        }
+      }
+
+      toggleBtn.addEventListener('click', () => {
+        const current = window.AppState.get('persona');
+        const next = current === 'beginner' ? 'professional' : 'beginner';
+        window.AppState.set('persona', next);
+      });
+
+      window.AppState.subscribe(updateToggleClasses);
+
+      // Bind Currency Selector Dropdown to AppState
+      const currencySelect = document.getElementById('currency-select');
+      if (currencySelect) {
+        currencySelect.addEventListener('change', (e) => {
+          window.AppState.set('currency', e.target.value);
+        });
+        window.AppState.subscribe(state => {
+          if (currencySelect.value !== state.currency) {
+            currencySelect.value = state.currency || 'INR';
+          }
+        });
+      }
+
+      // --- Mobile/Tablet Drawer Controls (left nav + AI coach) ---
+      const navSidebar = document.getElementById('nav-sidebar');
+      const coachSidebar = document.getElementById('coach-sidebar');
+      const backdrop = document.getElementById('drawer-backdrop');
+
+      function closeAllDrawers() {
+        navSidebar.classList.remove('drawer-open');
+        coachSidebar.classList.remove('drawer-open');
+        backdrop.classList.remove('visible');
+        document.body.classList.remove('drawer-open');
+        window.__drawerFocus_setBodyScrollLocked?.(false);
+      }
+
+      function openNavDrawer() {
+        navSidebar.classList.add('drawer-open');
+        coachSidebar.classList.remove('drawer-open');
+        backdrop.classList.add('visible');
+        document.body.classList.add('drawer-open');
+        window.__drawerFocus_setBodyScrollLocked?.(true);
+      }
+
+      function openCoachDrawer() {
+        coachSidebar.classList.add('drawer-open');
+        navSidebar.classList.remove('drawer-open');
+        backdrop.classList.add('visible');
+        document.body.classList.add('drawer-open');
+        window.__drawerFocus_setBodyScrollLocked?.(true);
+      }
+
+      document.getElementById('btn-open-nav')?.addEventListener('click', openNavDrawer);
+      document.getElementById('btn-close-nav')?.addEventListener('click', closeAllDrawers);
+      document.getElementById('btn-open-coach')?.addEventListener('click', openCoachDrawer);
+      document.getElementById('btn-close-coach')?.addEventListener('click', closeAllDrawers);
+      backdrop?.addEventListener('click', closeAllDrawers);
+
+      // If the window grows back to desktop width, drop the drawer state entirely
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) closeAllDrawers();
+      });
+
+      // Nice touch: picking a calculator from the mobile nav drawer closes it automatically
+      navSidebar.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          if (window.innerWidth < 1024) closeAllDrawers();
+        });
+      });
+    });
+  </script>
+
+  <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
+    <div
+      class="glass-panel w-full max-w-md p-8 rounded-3xl border border-indigo-500/20 shadow-2xl relative animate-fade-in-up">
+      <button id="auth-modal-close" class="absolute top-4 right-4 text-slate-400 hover:text-slate-200 transition">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="flex border-b border-white/10 mb-6">
+        <button id="auth-tab-login"
+          class="w-1/2 pb-2 text-sm font-bold text-center text-indigo-400 border-b-2 border-indigo-500">Log In</button>
+        <button id="auth-tab-register"
+          class="w-1/2 pb-2 text-sm font-bold text-center text-slate-400 border-b-2 border-transparent">Create
+          Account</button>
+      </div>
+
+      <form id="auth-form" class="space-y-4">
+        <div class="space-y-1.5">
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Email Address</label>
+          <input type="email" id="auth-email" required placeholder="name@example.com"
+            class="w-full p-3 rounded-xl glass-input text-xs">
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Password</label>
+          <input type="password" id="auth-password" required placeholder="Min 6 characters"
+            class="w-full p-3 rounded-xl glass-input text-xs">
+        </div>
+
+        <div id="auth-confirm-container" class="space-y-1.5 hidden">
+          <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">Confirm Password</label>
+          <input type="password" id="auth-confirm-password" placeholder="Re-enter password"
+            class="w-full p-3 rounded-xl glass-input text-xs">
+        </div>
+
+        <div id="auth-error-banner"
+          class="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl hidden"></div>
+        <div id="auth-success-banner"
+          class="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs rounded-xl hidden"></div>
+
+        <button type="submit" id="auth-submit-btn"
+          class="w-full py-3 rounded-xl text-xs font-bold bg-indigo-500 hover:bg-indigo-600 transition flex items-center justify-center gap-2 active:scale-98">
+          <span id="auth-submit-text">Log In</span>
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        </button>
+      </form>
+
+      <div class="text-center mt-6">
+        <a href="#" id="auth-continue-guest"
+          class="text-xs font-medium text-slate-400 hover:text-indigo-400 transition underline underline-offset-4">
+          Continue as Guest
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="conflict-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
+    <div
+      class="glass-panel w-full max-w-md p-8 rounded-3xl border border-amber-500/20 shadow-2xl text-center space-y-6 animate-fade-in-up">
+      <div
+        class="h-12 w-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg mx-auto">
+        <i class="fa-solid fa-code-compare"></i>
+      </div>
+      <h2 class="text-base font-bold text-slate-100">Sync Conflict Detected</h2>
+      <p class="text-xs text-slate-300 leading-relaxed px-2">
+        You have active local calculations as a guest, and your account already has saved data in the cloud. How would
+        you like to proceed?
+      </p>
+
+      <div class="space-y-3 pt-2">
+        <button id="btn-conflict-cloud"
+          class="w-full p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-indigo-500/10 hover:border-indigo-500/20 text-xs font-semibold text-slate-300 text-left transition duration-200 block">
+          <span class="font-bold text-indigo-400 block mb-0.5">Use Cloud Storage Data</span>
+          Overwrites current guest session with your saved account details.
+        </button>
+
+        <button id="btn-conflict-local"
+          class="w-full p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-indigo-500/10 hover:border-indigo-500/20 text-xs font-semibold text-slate-300 text-left transition duration-200 block">
+          <span class="font-bold text-indigo-400 block mb-0.5">Upload Current Guest Session</span>
+          Overwrites cloud database with the calculations you just built.
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/authUi.js"></script>
+</body>
+
+</html>
